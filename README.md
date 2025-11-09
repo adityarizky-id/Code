@@ -13,7 +13,7 @@ This repository contains the following main assignment directories:
 
 I believe in continuous learning and sharing the development process. Feel free to connect and follow my professional and academic journey on LinkedIn:
 
-➡️ [Adityarizky D. N. on LinkedIn](https://www.linkedin.com/in/adityarizkydn/)
+➡️ [Aditya Rizky on LinkedIn](https://www.linkedin.com/in/adityarizkydn/)
 
 ## License
 
