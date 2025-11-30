@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prakiraan Cuaca Jakarta (Open-Meteo)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 32px auto;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    p.subtitle {
+      margin-top: 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .status {
+      margin: 12px 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.9rem;
+    }
+
+    thead {
+      background: #1e88e5;
+      color: white;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+
+    .temp-cell {
+      font-weight: 600;
+    }
+
+    .error {
+      color: #c62828;
+      font-weight: 600;
+    }
+
+    .loading {
+      color: #1565c0;
+      font-weight: 500;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prakiraan Cuaca Jakarta</h1>
+    <p class="subtitle">
+      Data diambil dari API Open-Meteo (per jam): waktu & suhu udara (°C).
+    </p>
+
+    <div id="status" class="status loading">Memuat data...</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Suhu (°C)</th>
+        </tr>
+      </thead>
+      <tbody id="weather-body">
+        <!-- Data akan diisi via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_URL = "https://api.open-meteo.com/v1/forecast?latitude=-6.2&longitude=106.8&hourly=temperature_2m";
+
+    const statusEl = document.getElementById("status");
+    const tbodyEl = document.getElementById("weather-body");
+
+    async function loadWeather() {
+      try {
+        statusEl.textContent = "Memuat data...";
+        statusEl.classList.add("loading");
+        statusEl.classList.remove("error");
+
+        const res = await fetch(API_URL);
+
+        if (!res.ok) {
+          throw new Error("Gagal memuat data. Kode status: " + res.status);
+        }
+
+        const data = await res.json();
+
+        const times = data.hourly?.time || [];
+        const temps = data.hourly?.temperature_2m || [];
+
+        tbodyEl.innerHTML = "";
+
+        if (times.length === 0 || temps.length === 0) {
+          statusEl.textContent = "Tidak ada data untuk ditampilkan.";
+          statusEl.classList.remove("loading");
+          return;
+        }
+
+        times.forEach((isoTime, index) => {
+          const temp = temps[index];
+
+          const tr = document.createElement("tr");
+
+          const dateObj = new Date(isoTime);
+          const formattedTime = dateObj.toLocaleString("id-ID", {
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+          const tdTime = document.createElement("td");
+          tdTime.textContent = formattedTime;
+
+          const tdTemp = document.createElement("td");
+          tdTemp.textContent = temp.toFixed(1);
+          tdTemp.classList.add("temp-cell");
+
+          tr.appendChild(tdTime);
+          tr.appendChild(tdTemp);
+
+          tbodyEl.appendChild(tr);
+        });
+
+        statusEl.textContent = `Berhasil memuat ${times.length} data jam-an.`;
+        statusEl.classList.remove("loading");
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Terjadi kesalahan: " + err.message;
+        statusEl.classList.remove("loading");
+        statusEl.classList.add("error");
+      }
+    }
+
+    loadWeather();
+  </script>
+</body>
+</html>
